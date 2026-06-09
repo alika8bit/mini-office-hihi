@@ -1,0 +1,593 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<title>Office 303 — Pixel Ad Office</title>
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<style>
+:root{
+  --step-1:2px;
+  --step-2:4px;
+  --step-3:8px;
+  --step-4:16px;
+  --step-5:24px;
+  --step-6:32px;
+
+  --bg-wall-top:#f4efd0f6;
+  --bg-wall-bottom:#ddc39f;
+  --bg-floor-a:#c9b28b;
+  --bg-floor-b:#b2936d;
+
+  --panel-bg:#1f1411;
+  --panel-border:#7a6a5a;
+  --panel-accent:#ff5b9a;
+
+  --txt-main:#f5e6c8;
+  --txt-muted:#b49a86;
+}
+
+*,
+*::before,
+*::after{
+  box-sizing:border-box;
+  image-rendering:pixelated;
+}
+
+body{
+  margin:0;
+  min-height:100vh;
+  background:#120b0a;
+  font-family:"Courier New",monospace;
+  display:flex;
+  justify-content:center;
+  align-items:center;
+  color:var(--txt-main);
+}
+
+#wrap{
+  background:var(--panel-bg);
+  border-radius:18px;
+  border:3px solid var(--panel-border);
+  box-shadow:0 0 40px #000;
+  padding:var(--step-4);
+  max-width:1024px;
+  width:100%;
+}
+
+#ui{
+  display:flex;
+  flex-wrap:wrap;
+  gap:var(--step-2);
+  align-items:center;
+  margin-bottom:var(--step-2);
+  font-size:11px;
+}
+
+.btn{
+  background:#4a382a;
+  border:2px solid #8a7a6a;
+  color:var(--txt-main);
+  padding:var(--step-1) var(--step-4);
+  cursor:pointer;
+  font-weight:bold;
+  text-transform:uppercase;
+  box-shadow:2px 2px 0 #0b0503;
+}
+.btn:hover{
+  background:#6a5a4a;
+  border-color:#b49a86;
+  transform:translate(-2px,-2px);
+  box-shadow:3px 3px 0 #0b0503;
+}
+.btn:active{
+  transform:translate(1px,1px);
+  box-shadow:0 0 0 #0b0503;
+}
+
+#status,#clock{
+  background:#241a15;
+  border:1px solid #7a6a5a;
+  padding:var(--step-2) var(--step-4);
+}
+
+.scene-wrapper{
+  margin-top:var(--step-2);
+  overflow:hidden;
+  display:flex;
+  justify-content:center;
+}
+
+#cv{
+  border:2px solid #6a5a4a;
+  background:#d1c3aa;
+  cursor:crosshair;
+  image-rendering:pixelated;
+  transform-origin:top center;
+}
+
+@media (max-width:1100px){
+  #cv{transform:scale(.9);}
+}
+@media (max-width:900px){
+  #cv{transform:scale(.8);}
+}
+@media (max-width:720px){
+  #cv{transform:scale(.7);}
+}
+@media (max-width:600px){
+  #cv{transform:scale(.6);}
+}
+
+#msg{
+  position:fixed;
+  left:16px;
+  bottom:24px;
+  background:rgba(10,5,3,.96);
+  border-left:5px solid var(--panel-accent);
+  padding:var(--step-4) var(--step-5);
+  border-radius:0 10px 10px 0;
+  min-width:260px;
+  max-width:420px;
+  display:none;
+  box-shadow:0 8px 24px rgba(0,0,0,.6);
+  z-index:20;
+}
+#msgh{
+  display:block;
+  font-size:11px;
+  margin-bottom:var(--step-2);
+  color:#cf5ea4;
+  font-weight:bold;
+}
+#msgt{
+  font-size:12px;
+  color:var(--txt-main);
+  line-height:1.3;
+}
+
+.tooltip{
+  position:absolute;
+  pointer-events:none;
+  background:#1a0f0a;
+  color:var(--txt-main);
+  font-size:10px;
+  padding:var(--step-2) var(--step-3);
+  border:2px solid #f5e6c8;
+  box-shadow:0 0 0 2px #5a3b62,0 4px 0 #0b0503;
+  max-width:220px;
+  z-index:15;
+  display:none;
+}
+.tooltip::before{
+  content:"";
+  position:absolute;
+  left:10px;
+  bottom:-6px;
+  width:8px;
+  height:8px;
+  background:#1a0f0a;
+  border-left:2px solid #f5e6c8;
+  border-bottom:2px solid #f5e6c8;
+  transform:rotate(45deg);
+}
+
+.info{
+  margin-top:var(--step-2);
+  font-size:10px;
+  color:var(--txt-muted);
+}
+</style>
+</head>
+<body>
+<div id="wrap">
+  <div id="ui">
+    <strong>OFFICE 303</strong>
+    <button class="btn c" data-n="Alika">АЛИКА</button>
+    <button class="btn c" data-n="Yana">ЯНА</button>
+    <button class="btn c" data-n="Tonya">ТОНЯ</button>
+    <button class="btn c" data-n="Masha">МАША </button>
+    <button class="btn s" data-s="walk">🚶 ВЫШЛА НА КУРИЛКУ</button>
+    <button class="btn s" data-s="brief">📄 СТАВЛЮ ЗАДАЧИ</button>
+    <button class="btn s" data-s="pitch">🎤 ОПЕРПЦИОНКА</button>
+    <button class="btn s" data-s="deadline">⏱ ОЧЕНЬ ЗАНЯТА</button>
+    <button class="btn s" data-s="bar">🍸 BAR</button>
+    <span id="status">ПЕРСОНАЖ: ALIKA | ДЕЙСТВИЕ: ГУЛЯЕТ</span>
+    <span id="clock">KRASNODAR --:--</span>
+  </div>
+
+  <div class="scene-wrapper">
+    <canvas id="cv" width="960" height="540"></canvas>
+  </div>
+
+  <div class="info">
+    клик по персонажу — выбрать; клик по полу — медленное движение (режим WALK). наведи на людей и зоны для pixel‑подсказки.
+  </div>
+</div>
+
+<div id="msg"><span id="msgh"></span><div id="msgt"></div></div>
+<div id="tooltip" class="tooltip"></div>
+
+<script>
+var cv=document.getElementById('cv');
+var ctx=cv.getContext('2d');
+ctx.imageSmoothingEnabled=false;
+
+var statusEl=document.getElementById('status');
+var clockEl=document.getElementById('clock');
+var msg=document.getElementById('msg');
+var msgh=document.getElementById('msgh');
+var msgt=document.getElementById('msgt');
+var tooltip=document.getElementById('tooltip');
+
+var W=cv.width,H=cv.height;
+var phase='day';
+var last=performance.now();
+var active=0;
+var msgEnd=0;
+
+var zones={
+ deskA:{x:150,y:260},
+ deskY:{x:320,y:260},
+ deskT:{x:490,y:260},
+ deskM:{x:660,y:260},
+ board:{x:70,y:125,w:190,h:80,tip:' ЕСЛИ ТЫ НЕ ПОНЯЛ, ТО ПОЙМИ.'},
+ bar:{x:720,y:400,w:190,h:110,tip:'Бар 303. Здесь идеи становятся чуть менее страшными.'},
+ kitchen:{x:380,y:120,w:200,h:90,tip:'Кухня. Кофе, сахар и вечный shortage молока.'},
+ library:{x:40,y:120,w:160,h:80,tip:'Библиотека кейсов: чужие успехи, наши референсы.'}
+};
+
+var chars=[
+ {name:'Alika',x:zones.deskA.x,y:zones.deskA.y,skin:'#f6d4aa',hair:'#7a5336',out:'#cc6a8a',accent:'#ff9bbd',state:'walk',
+  tip:'Алика — менеджер на суете и темках.'},
+ {name:'Yana',x:zones.deskY.x,y:zones.deskY.y,skin:'#f0dec0',hair:'#c69860',out:'#4f7a99',accent:'#9bd4ff',state:'walk',
+  tip:'Яна — рук.отдела продаж интересует только  план и чилл'},
+ {name:'Tonya',x:zones.deskT.x,y:zones.deskT.y,skin:'#f8e4c2',hair:'#e6d09a',out:'#5a7a5a',accent:'#b9ffb0',state:'walk',
+  tip:'Тоня — коммерческий директор, это уже не про  темки, а тема совещания.'},
+ {name:'Masha',x:zones.deskM.x,y:zones.deskM.y,skin:'#f0d0c0',hair:'#b5446a',out:'#3aa0a0',accent:'#7fd4e0',state:'walk',
+  tip:'Маша — менеджер на стабильном оптимизме'}
+];
+
+for(var i=0;i<chars.length;i++){
+  chars[i].tx=chars[i].x;
+  chars[i].ty=chars[i].y;
+  chars[i].animPhase=Math.random()*1000;
+}
+
+function clamp(v,a,b){
+  if(v<a)return a;
+  if(v>b)return b;
+  return v;
+}
+
+function updClock(){
+  var now=new Date();
+  var t=now.toLocaleTimeString('ru-RU',{timeZone:'Europe/Moscow',hour12:false});
+  clockEl.textContent='KRASNODAR '+t;
+  var h=parseInt(t.slice(0,2),10);
+  if(h<8) phase='dawn';
+  else if(h<17) phase='day';
+  else if(h<21) phase='sunset';
+  else phase='night';
+}
+setInterval(updClock,1000);
+updClock();
+
+function showMsg(who,text,ms){
+  if(ms===undefined){ms=7000;}
+  msgh.textContent='🗣 '+who.toUpperCase();
+  msgt.textContent=text;
+  msg.style.display='block';
+  msgEnd=performance.now()+ms;
+}
+
+function drawOffice(){
+  var grad=ctx.createLinearGradient(0,0,0,140);
+  grad.addColorStop(0,'#f9eed7');
+  grad.addColorStop(.6,'#f0dfc0');
+  grad.addColorStop(1,'#ddc39f');
+  ctx.fillStyle=grad;
+  ctx.fillRect(0,0,W,140);
+
+  ctx.fillStyle='#1b0c12';ctx.fillRect(70,40,90,64);
+  ctx.fillStyle='#f5e6c8';
+  ctx.fillText('BRIEF',80,62);
+  ctx.fillStyle='#ff5b9a';
+  ctx.fillRect(78,70,50,6);
+  ctx.fillStyle='#ffd966';
+  ctx.fillText('НЕ ЗАБЫТЬ:',74,88);
+  ctx.fillText('«СДЕЛАЙТЕ ВИРУАЛ»',74,100);
+
+  var skyMap={
+    dawn:['#fbd1a2','#f79bb8','#c178b8'],
+    day:['#a9d6ff','#6fb5ff','#3f8fe0'],
+    sunset:['#ff9068','#ff5e62','#b2456e'],
+    night:['#07101f','#111827','#020617']
+  };
+  var sky=skyMap[phase];
+  var wg=ctx.createLinearGradient(140,25,140,125);
+  wg.addColorStop(0,sky[0]);wg.addColorStop(.5,sky[1]);wg.addColorStop(1,sky[2]);
+  ctx.fillStyle=wg;ctx.fillRect(150,30,W-200,90);
+  ctx.strokeStyle='#b89a6e';ctx.lineWidth=4;ctx.strokeRect(140,25,W-180,100);
+
+  for(var i=0;i<40;i++){
+    ctx.fillStyle='rgba(255,255,220,'+(0.15+Math.random()*0.35)+')';
+    ctx.fillRect(150+Math.random()*(W-200),35+Math.random()*70,3+Math.random()*7,6+Math.random()*14);
+  }
+
+  ctx.fillStyle='#1b0c12';ctx.fillRect(W-170,36,120,36);
+  ctx.fillStyle='#f5e6c8';ctx.fillText('AGENCY 303',W-160,58);
+
+  var y,x;
+  for(y=140;y<H;y+=16){
+    var depth=y/H;
+    var br=1-depth*0.35;
+    for(x=0;x<W;x+=32){
+      var c=((x/32|0)+(y/16|0))%2?'#b2936d':'#c9b28b';
+      ctx.fillStyle=c;ctx.globalAlpha=br;ctx.fillRect(x,y,32,16);
+    }
+  }
+  ctx.globalAlpha=1;
+
+  var desks=[
+    {x:zones.deskA.x-50,y:240,label:' МЕНЕЖЕР',joke:'« ЕСЛИ КОРОТКО, ТО ТОЧНО НАДОЛГО»'},
+    {x:zones.deskY.x-50,y:240,label:'МЕНЕДЖЕР',joke:' БРИФЫ? ОНИ С НАМИ В ОДНОЙ КОМНАТЕ ???'},
+    {x:zones.deskT.x-50,y:240,label:'РУКОВОДИТЕЛЬ',joke:'ПЛАН СДЕЛАЛ ? КНИГУ ПРОЧИТАЛ ?'},
+    {x:zones.deskM.x-50,y:240,label:'КОММЕРЧЕСКИЙ ДИРЕКТОР',joke:'мемы и кризисы'}
+  ];
+  for(i=0;i<desks.length;i++){
+    var d=desks[i];
+    ctx.fillStyle='#a67855';ctx.fillRect(d.x,d.y,160,72);
+    ctx.fillStyle='#704b36';ctx.fillRect(d.x-4,d.y+30,8,44);ctx.fillRect(d.x+156,d.y+30,8,44);
+    ctx.fillStyle='#2a3b4f';ctx.fillRect(d.x+18,d.y+10,42,26);
+    ctx.fillStyle='#c0e0ff';ctx.fillRect(d.x+20,d.y+12,38,18);
+    ctx.fillStyle='#f5e6a0';ctx.fillRect(d.x+74,d.y+12,48,14);
+    ctx.fillStyle='#ffc857';ctx.fillRect(d.x+76,d.y+28,12,10);
+    ctx.fillStyle='#ff99aa';ctx.fillRect(d.x+92,d.y+28,12,10);
+    ctx.font='9px monospace';ctx.fillStyle='#1a0f0a';
+    ctx.fillText(d.label,d.x+10,d.y+60);
+    ctx.fillStyle='#b49a86';ctx.fillText(d.joke,d.x+10,d.y+70);
+  }
+
+  var k=zones.kitchen;
+  ctx.fillStyle='#f4e0b5';ctx.fillRect(k.x,k.y,k.w,k.h);
+  ctx.fillStyle='#b79a74';ctx.fillRect(k.x+10,k.y+32,k.w-20,24);
+  ctx.fillStyle='#6b5a4a';ctx.fillRect(k.x+24,k.y+20,36,18);
+  ctx.fillStyle='#f5f5f5';ctx.fillRect(k.x+32,k.y+38,18,6);
+  ctx.fillStyle='#222';
+  ctx.fillText('КОФЕ: 0%',k.x+18,k.y+65);
+  ctx.fillText('ЭНТУЗИАЗМ: 17%',k.x+18,k.y+77);
+
+  var b=zones.bar;
+  ctx.fillStyle='#3a2522';ctx.fillRect(b.x,b.y,b.w,b.h);
+  ctx.fillStyle='#5a3530';ctx.fillRect(b.x+12,b.y+18,b.w-24,20);
+  var bc=['#ff6680','#ffd966','#9bf6ff','#c4ff9b'];
+  for(i=0;i<6;i++){
+    ctx.fillStyle=bc[i%bc.length];
+    ctx.fillRect(b.x+18+i*26,b.y+22,10,18);
+  }
+  ctx.fillStyle='#f5e6c8';ctx.fillText('BAR 303 / «ПОСЛЕ СОЗВОНА»',b.x+16,b.y+54);
+
+  var brd=zones.board;
+  ctx.fillStyle='#f4e0b5';ctx.fillRect(brd.x,brd.y,brd.w,brd.h);
+  ctx.fillStyle='#413023';ctx.fillRect(brd.x+6,brd.y+6,brd.w-12,brd.h-12);
+  ctx.fillStyle='#f9f1cf';ctx.fillText('BIG IDEA',brd.x+12,brd.y+20);
+  ctx.fillText('ИИ - это 2026»',brd.x+12,brd.y+36);
+  ctx.fillText('DEADLINE: ВЧЕРА',brd.x+12,brd.y+52);
+
+  var l=zones.library;
+  ctx.fillStyle='#e2cfaa';ctx.fillRect(l.x,l.y,l.w,l.h);
+  ctx.fillStyle='#b89a6e';ctx.fillRect(l.x+5,l.y+5,l.w-10,l.h-10);
+  ctx.fillStyle='#4a2e1e';
+  ctx.fillText('CASE LIBRARY',l.x+10,l.y+26);
+  ctx.fillStyle='#765a3e';
+  ctx.fillText('« Я Легенда »',l.x+10,l.y+46);
+}
+
+function drawChar(c,t){
+  var bob=Math.sin((t+c.animPhase)/1200)*2;
+  var x=c.x;
+  var y=c.y+bob;
+  var sx=x-16;
+  var sy=y-44;
+
+  ctx.fillStyle='rgba(0,0,0,.25)';
+  ctx.beginPath();
+  ctx.ellipse(x+1,y+18,18,7,0,0,Math.PI*2);
+  ctx.fill();
+
+  ctx.fillStyle=c.out;ctx.fillRect(sx+6,sy+22,20,24);
+  ctx.fillStyle=c.accent;ctx.fillRect(sx+9,sy+24,14,18);
+
+  ctx.fillStyle=c.skin;ctx.fillRect(sx+8,sy+6,16,16);
+  ctx.fillStyle=c.hair;ctx.fillRect(sx+7,sy+4,18,8);
+  ctx.fillRect(sx+6,sy+8,4,10);ctx.fillRect(sx+21,sy+8,4,10);
+
+  ctx.fillStyle='#2a1a12';ctx.fillRect(sx+11,sy+11,3,3);ctx.fillRect(sx+16,sy+11,3,3);
+  ctx.fillStyle='#a06040';ctx.fillRect(sx+13,sy+16,6,3);
+
+  if(c.name==='Alika'){
+    ctx.fillStyle='#ff5b9a';
+    ctx.fillRect(sx+24,sy+10,4,4);
+  }
+  if(c.name==='Yana'){
+    ctx.fillStyle='#5a5a7a';
+    ctx.fillRect(sx+10,sy+13,12,4);
+  }
+  if(c.name==='Tonya'){
+    ctx.fillStyle='#ffcc66';
+    ctx.fillRect(sx+8,sy+24,4,8);
+  }
+  if(c.name==='Masha'){
+    ctx.fillStyle='#77aaff';
+    ctx.fillRect(sx+9,sy+30,6,6);
+  }
+
+  var step=Math.sin((t+c.animPhase)/420)*2;
+  ctx.fillStyle='#34252a';
+  ctx.fillRect(sx+7+step,sy+44,7,12);
+  ctx.fillRect(sx+17-step,sy+44,7,12);
+  ctx.fillStyle='#1b1414';
+  ctx.fillRect(sx+7+step,sy+54,7,4);
+  ctx.fillRect(sx+17-step,sy+54,7,4);
+
+  ctx.font='9px monospace';
+  ctx.fillStyle='#1a0f0a';ctx.fillText(c.name,sx-4,sy-6);
+  ctx.fillStyle='#c96a4a';ctx.fillText(c.state.toUpperCase(),sx-4,sy+6);
+}
+
+function updateChar(c,dt){
+  var sp=0.09;
+  var dx=c.tx-c.x;
+  var dy=c.ty-c.y;
+  var d=Math.hypot(dx,dy);
+  if(d>2){
+    var step=sp*dt;
+    c.x+=dx/d*step;
+    c.y+=dy/d*step;
+  }else if(c.state==='walk' && Math.random()<0.002){
+    c.tx=80+Math.random()*(W-160);
+    c.ty=160+Math.random()*(H-220);
+  }
+  c.x=clamp(c.x,40,W-40);
+  c.y=clamp(c.y,150,H-40);
+}
+
+function updStatus(){
+  var c=chars[active];
+  statusEl.textContent='ACTIVE: '+c.name.toUpperCase()+' | MODE: '+c.state.toUpperCase();
+}
+
+var charButtons=document.querySelectorAll('.c');
+for(var bIndex=0;bIndex<charButtons.length;bIndex++){
+  charButtons[bIndex].onclick=function(){
+    var name=this.getAttribute('data-n');
+    for(var i=0;i<chars.length;i++){
+      if(chars[i].name===name){
+        active=i;
+        updStatus();
+        showMsg(chars[i].name,chars[i].tip);
+        break;
+      }
+    }
+  };
+}
+
+var stateButtons=document.querySelectorAll('.s');
+for(var sIndex=0;sIndex<stateButtons.length;sIndex++){
+  stateButtons[sIndex].onclick=function(){
+    var s=this.getAttribute('data-s');
+    var c=chars[active];
+    c.state=s;
+    if(s==='brief'){
+      c.tx=zones.board.x+110;c.ty=zones.board.y+90;
+      showMsg(c.name,' Что-то типа брифа....реально что-то и типа, блин где KPI ?.');
+    }else if(s==='pitch'){
+      c.tx=W/2;c.ty=260;
+      showMsg(c.name,'Я пока не поняла, я делаю работу или она меня ');
+    }else if(s==='deadline'){
+      var map=[zones.deskA,zones.deskY,zones.deskT,zones.deskM];
+      c.tx=map[active].x;c.ty=map[active].y;
+      showMsg(c.name,'Когда кп нужно ? Еще вчера и желательно с ИИ.');
+    }else if(s==='bar'){
+      c.tx=zones.bar.x+90;c.ty=zones.bar.y+70;
+      showMsg(c.name,'Бар — это когда медиаплан совпал с реальностью. Почти.');
+    }else if(s==='walk'){
+      c.tx=80+Math.random()*(W-160);
+      c.ty=160+Math.random()*(H-220);
+      showMsg(c.name,'Дышу воздухом, не трогать .');
+    }
+    updStatus();
+  };
+}
+
+cv.addEventListener('mousemove',function(e){
+  var r=cv.getBoundingClientRect();
+  var x=(e.clientX-r.left)*W/r.width;
+  var y=(e.clientY-r.top)*H/r.height;
+  var text=null;
+
+  var i;
+  for(i=0;i<chars.length;i++){
+    var c=chars[i];
+    if(Math.hypot(x-c.x,y-c.y)<26){
+      text=c.tip;
+      break;
+    }
+  }
+  if(!text){
+    var keys=['board','kitchen','bar','library'];
+    for(i=0;i<keys.length;i++){
+      var key=keys[i];
+      var z=zones[key];
+      if(x>z.x && x<z.x+z.w && y>z.y && y<z.y+z.h){
+        text=z.tip;
+        break;
+      }
+    }
+  }
+
+  if(text){
+    tooltip.textContent=text;
+    tooltip.style.display='block';
+    tooltip.style.left=(e.clientX+12)+'px';
+    tooltip.style.top=(e.clientY-32)+'px';
+  }else{
+    tooltip.style.display='none';
+  }
+});
+
+cv.addEventListener('click',function(e){
+  var r=cv.getBoundingClientRect();
+  var x=(e.clientX-r.left)*W/r.width;
+  var y=(e.clientY-r.top)*H/r.height;
+
+  var i;
+  for(i=0;i<chars.length;i++){
+    var c=chars[i];
+    if(Math.hypot(x-c.x,y-c.y)<26){
+      active=i;
+      updStatus();
+      showMsg(c.name,c.tip);
+      return;
+    }
+  }
+
+  var keys=['board','kitchen','bar','library'];
+  for(i=0;i<keys.length;i++){
+    var key=keys[i];
+    var z=zones[key];
+    if(x>z.x && x<z.x+z.w && y>z.y && y<z.y+z.h){
+      showMsg(chars[active].name,z.tip);
+      return;
+    }
+  }
+
+  if(chars[active].state==='walk'){
+    chars[active].tx=x;
+    chars[active].ty=y;
+  }else{
+    showMsg(chars[active].name,'Я не В ресурсе, я в ахуе.');
+  }
+});
+
+function loop(t){
+  var dt=Math.min(32,t-last);last=t;
+  ctx.clearRect(0,0,W,H);
+  drawOffice();
+  var sorted=chars.slice().sort(function(a,b){return a.y-b.y;});
+  for(var i=0;i<sorted.length;i++){
+    updateChar(sorted[i],dt);
+    drawChar(sorted[i],t);
+  }
+  if(msgEnd && t>msgEnd){
+    msg.style.display='none';
+    msgEnd=0;
+  }
+  requestAnimationFrame(loop);
+}
+
+updStatus();
+requestAnimationFrame(loop);
+</script>
+</body>
+</html>
